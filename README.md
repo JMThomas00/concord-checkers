@@ -1,40 +1,41 @@
 # Checkers
 
-A [Concord](https://github.com/JMThomas00/Concord) plugin that's also a
-standalone program.
+American checkers (English draughts) for the terminal and for
+[Concord](https://github.com/JMThomas00/Concord) channels, from the same
+program.
 
-## Run it
+- **In a terminal:** `go run .` offers two players on one keyboard, the computer at
+  three levels, or a network game. For a network game, one player hosts and the other
+  joins with the host's address and a 6-character code.
+- **In Concord:** install it in **Server Settings → Plugins** (press **I** and
+  type `JMThomas00/concord-checkers`), then create a **Checkers** channel.
+  Choose how people play in the channel's settings:
+  - **seats**: one board; sit down with Tab, and everyone else watches.
+  - **challenge**: a lobby where members challenge each other.
+  - **private**: your own games with opponents you pick.
 
-```sh
-go run .
-```
+## Rules
 
-Launched by a Concord server, the same program joins that server as a
-plugin instead (Concord sets `CONCORD_WS_URL` and friends; see
-`plugin.ConfigFromEnv`).
+8×8 board. Red moves first. Pieces move diagonally forward onto dark squares.
+Captures are compulsory, and a piece that can keep jumping must. A man reaching
+the far row becomes a king, which moves both ways, and crowning ends the move.
+You lose when you have no pieces or no legal move. 40 moves each without a
+capture or a man moving is a draw.
 
-## Install it on a Concord server
+## Playing
 
-In Concord, open **Server Settings → Plugins**, press **I**, and enter
-`github.com/JMThomas00/concord-checkers` without the `github.com/` (or paste the repo's URL). Concord
-downloads the latest release for its own OS and CPU, checks it against the
-checksum GitHub publishes, and starts it. No restart, no config files.
-Settings then live under **Enter** on the plugin.
+- **Arrow keys** move the cursor.
+- **Enter** picks up a piece, then Enter on each square it lands on. Multi-jumps are chosen one hop at a time.
+- **Esc** cancels.
+- **Tab** opens the table menu: resign, rematch, and so on.
 
-## Release a version
+Moves are recorded in standard notation: `11-15` for a step, `15x24x31` for jumps.
 
-```sh
-git tag v0.1.0 && git push --tags
-```
+## Layout
 
-`.github/workflows/release.yml` builds every target with `go run release.go`
-and attaches `dist/concord-checkers_<os>_<arch>.zip` to the release. Run
-`go run release.go` locally to check the zips.
+- `engine/`: the rules and the computer player. Move generation is checked
+  against the published move counts (perft) for English draughts.
+- `game/`: connects the engine to the Concord SDK's table kit, and the board you play on.
+- `release.go`: `go run release.go` builds the release zips Concord installs.
 
-## How it fits together
-
-- `plugin.toml`: what Concord reads: the channel type this plugin adds, its
-  settings (shown as a form in Server Settings; never hand-edited), and
-  which binary to start on each OS.
-- `main.go`: standalone vs plugin, and the plugin's behaviour, built on the
-  Concord SDK (`github.com/JMThomas00/Concord/sdk`).
+Tag a version (`git tag v0.1.0 && git push --tags`) and the workflow publishes them.
