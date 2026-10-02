@@ -75,16 +75,26 @@ func TestTwoPlayersInAChannel(t *testing.T) {
 
 	red := srv.Enter(ch, "alice", 60, 24)
 	white := srv.Enter(ch, "bob", 60, 24)
-	srv.FrameContaining(red, "Tab: sit down")
-	srv.FrameContaining(white, "Tab: sit down")
+	srv.FrameContaining(red, "M: sit down")
+	srv.FrameContaining(white, "M: sit down")
 	for _, v := range []*plugintest.Viewer{red, white} { // Sit (first open seat)
-		srv.Key(v, "tab")
+		srv.Key(v, "m")
 		srv.Key(v, "enter")
 	}
 	srv.FrameContaining(red, "your move")
 
 	// Red's cursor starts on square 11; 15 is up and to the right on Red's
 	// (flipped) board.
+	// Esc is Concord's until a piece is picked up; then it puts it back.
+	if srv.Key(red, "esc") {
+		t.Fatal("Esc was claimed with no move started")
+	}
+	srv.Key(red, "enter")
+	srv.FrameContaining(red, "choose where it goes")
+	if !srv.Key(red, "esc") {
+		t.Fatal("Esc wasn't claimed with a piece picked up")
+	}
+	srv.FrameContaining(red, "your move")
 	srv.Key(red, "enter")
 	srv.FrameContaining(red, "choose where it goes")
 	srv.Key(red, "up")

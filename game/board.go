@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/JMThomas00/Concord/sdk/table"
+	"github.com/JMThomas00/Concord/sdk/wire"
 	"github.com/JMThomas00/concord-checkers/engine"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -62,17 +63,22 @@ func (b *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			b.col = min(7, b.col+1)
 		case "enter", " ":
 			b.choose()
-		case "esc":
-			if len(b.path) > 0 {
-				b.path, b.err = nil, ""
-			} else {
-				return b, tea.Quit // hand the keyboard back (in Concord)
-			}
+		case "esc": // claimed only while a move is half made (ClaimedKeys)
+			b.path, b.err = nil, ""
 		case "q":
 			return b, tea.Quit
 		}
 	}
 	return b, nil
+}
+
+// ClaimedKeys keeps Esc while a move is half made, so Esc puts the piece
+// back; otherwise Esc is Concord's, to leave the pane.
+func (b *Board) ClaimedKeys() []string {
+	if len(b.path) > 0 {
+		return []string{wire.PaneKeyEsc}
+	}
+	return nil
 }
 
 // candidates are the legal moves continuing the squares chosen so far.
