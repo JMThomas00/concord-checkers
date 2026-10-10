@@ -6,8 +6,12 @@
 id = "concord-checkers"
 name = "Checkers"
 version = "0.1.0"            # release.go stamps the git tag here
-description = "American checkers in a channel: sit down at a table, challenge a member, or play the computer."
+description = "American checkers at the corner diner: play the computer, sit down at a table or challenge a member. Combo calls for multi-jumps, Tickets to trade at the prize counter for new pieces and boards."
 source_url = "https://github.com/JMThomas00/concord-checkers"
+
+# Sounds in client/, served by Concord to members.
+[client]
+capabilities = ["sound"]
 
 [process]
 restart_on_crash = true

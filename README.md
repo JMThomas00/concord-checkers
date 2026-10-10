@@ -2,7 +2,11 @@
 
 American checkers (English draughts) for the terminal and for
 [Concord](https://github.com/JMThomas00/Concord) channels, from the same
-program.
+program. In Concord it's a little arcade cabinet at the corner diner: a title
+screen where the computer plays itself, pixel-art pieces in your theme's
+colours, a combo call for every multi-jump (**DOUBLE!**, **TRIPLE!**), **KING
+ME!**, chiptune sounds, a Hall of Fame, and **Tickets** to trade at the
+**PRIZE COUNTER** for new pieces and boards. A draw means you split the check.
 
 ## Play it on your own computer
 
@@ -39,10 +43,33 @@ You need to be the server owner, or have the **Manage Plugins** permission.
      *private* (your own games with opponents you pick).
    - **Allow spectators**, **Computer opponent**, and **Computer strength**
      (easy, normal or hard).
-4. Select the channel and press **Tab** (or click the board) so your keys go
-   to the game. **M** opens the table menu: sit down, play the computer,
-   resign, rematch. **Esc** gives the keyboard back to Concord (once there's
-   nothing to cancel), and **Tab** moves on to the member list.
+4. Select the channel and press **Tab** (or click it) so your keys go to the
+   game. Press **Enter** on the title screen, then pick from the menu.
+
+## The arcade
+
+Everyone who opens the channel starts on the title screen. The menu:
+
+- **1 PLAYER VS CPU** `◂ NORMAL ▸`: a game of your own against the computer
+  (←/→ picks easy, normal or hard); leave and come back to carry on.
+- **TAKE A SEAT** (seats channels) sits you at the channel's table; in a
+  challenge channel it's **2 PLAYERS** and **WATCH**, in a private one
+  **NEW GAME** and **YOUR GAMES**.
+- **PRIZE COUNTER**: your pieces and board. 12 piece sets, each with a crowned
+  king (classic, poker chips, bottle caps, cookies, coins, buttons, jukebox
+  records, burgers and fries, grapes ... and eyeballs, planets, frogs and
+  toads), and 7 boards (diner tile, gingham, walnut, mint and bubblegum, neon
+  sign, vineyard). Everyone sees the game in their own.
+- **HALL OF FAME**, **HOW TO PLAY** and **OPTIONS** (your sound and effects).
+
+You earn a **Ticket** for each new achievement, every three wins in a row and
+every ten games. Trade one at the PRIZE COUNTER for a locked set or board:
+you're offered three and pick one.
+
+After a game, **Enter** shows the results; Enter again asks for a rematch,
+which starts once both players have. **Esc** puts down a piece you've picked
+up, or goes back a screen (on the title screen it gives the keyboard back to
+Concord). A pane smaller than 64 x 24 gets the plain board instead.
 
 To update later: select it in **Server Settings → Plugins**, press **U**, then
 Enter. A failed update rolls back by itself.
@@ -69,7 +96,12 @@ Moves are recorded in standard notation: `11-15` for a step, `15x24x31` for jump
 
 - `engine/`: the rules and the computer player. Move generation is checked
   against the published move counts (perft) for English draughts.
-- `game/`: connects the engine to the Concord SDK's table kit, and the board you play on.
+- `game/`: connects the engine to the Concord SDK's table kit: the board you
+  play on (`board.go`), the piece sets and boards (`sets.go`, `draw.go`), the
+  arcade's personality (`arcade.go`: attract mode, the split check) and the
+  move sounds (`sound.go`).
+- `client/`: the sounds Concord sends to members' clients; `go run tools/gen.go`
+  regenerates them (and the arcade sound kit).
 - `release.go`: `go run release.go` builds the release zips Concord installs.
 
 Tag a version (`git tag v0.1.0 && git push --tags`) and the workflow publishes them.

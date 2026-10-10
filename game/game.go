@@ -16,6 +16,8 @@ var Rules = table.Rules{
 	SeatNames: []string{"Red", "White"},
 	New:       func(map[string]string) table.Game { return &Game{Board: engine.New()} },
 	NewBoard:  func(s *table.Seat) tea.Model { return newBoard(s) },
+	Sound:     sound,
+	Arcade:    arcadeLook,
 	AI: func(g table.Game, level int) string {
 		return engine.Best(g.(*Game).Board, level).String()
 	},
@@ -23,8 +25,9 @@ var Rules = table.Rules{
 
 // Game adapts an engine.Board to table.Game.
 type Game struct {
-	Board *engine.Board
-	Last  engine.Move // the move just played (for highlighting)
+	Board   *engine.Board
+	Last    engine.Move // the move just played (for highlighting)
+	Crowned bool        // the move just played crowned a man (for KING ME!)
 }
 
 func (g *Game) Turn() int {
@@ -42,7 +45,9 @@ func (g *Game) Play(move string) error {
 	if err != nil {
 		return err
 	}
-	g.Board, g.Last = g.Board.Apply(m), m
+	nb := g.Board.Apply(m)
+	g.Crowned = !engine.IsKing(g.Board.Sq[m.Path[0]]) && engine.IsKing(nb.Sq[m.Path[len(m.Path)-1]])
+	g.Board, g.Last = nb, m
 	return nil
 }
 

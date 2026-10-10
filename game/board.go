@@ -2,7 +2,9 @@ package game
 
 import (
 	"strings"
+	"time"
 
+	"github.com/JMThomas00/Concord/sdk/arcade"
 	"github.com/JMThomas00/Concord/sdk/table"
 	"github.com/JMThomas00/Concord/sdk/wire"
 	"github.com/JMThomas00/concord-checkers/engine"
@@ -18,6 +20,8 @@ type Board struct {
 	row, col      int   // cursor, screen coordinates
 	path          []int // squares chosen so far for the move being made
 	err           string
+	callout       string // "DOUBLE!", "KING ME!": shown for a moment after a move
+	calloutAt     time.Time
 	width, height int
 }
 
@@ -51,6 +55,9 @@ func (b *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		b.width, b.height = msg.Width, msg.Height
 	case table.ChangedMsg:
 		b.path, b.err = nil, ""
+		if g := b.game(); msg.Move != "" {
+			b.callout, b.calloutAt = calloutFor(len(g.Last.Captured), g.Crowned), time.Now()
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -243,4 +250,75 @@ func (b *Board) View() string {
 		status = "last move " + g.Last.String()
 	}
 	return strings.Join(append(lines, status), "\n")
+}
+
+// ── The arcade (table.ArcadeBoard, table.Animator) ─────────────────────────
+
+// Draw draws the board on the arcade table, in the viewer's own piece set
+// and board, Red at the bottom for Red and spectators.
+func (b *Board) Draw(c *arcade.Canvas, x, y, w, h int) {
+	g := b.game()
+	l := look{
+		set:    pieces(b.seat.Equipped(kindPieces)),
+		style:  style(b.seat.Equipped(kindBoard)),
+		flip:   b.flipped(),
+		cursor: [2]int{-1, -1},
+		picked: map[int]bool{},
+		last:   map[int]bool{},
+	}
+	if b.seat.MyTurn() {
+		l.cursor = [2]int{b.row, b.col}
+	}
+	for _, s := range b.path {
+		l.picked[s] = true
+	}
+	if len(b.path) > 0 {
+		l.targets = map[int]bool{}
+		for _, m := range b.candidates() {
+			l.targets[m.Path[len(b.path)]] = true
+		}
+	}
+	if !g.Outcome().Over || len(g.Last.Path) > 0 {
+		for _, s := range g.Last.Path {
+			l.last[s] = true
+		}
+	}
+	drawBoard(c, x, y, w, h, &g.Board.Sq, l)
+	if b.Animating() {
+		drawCallout(c, b.callout, x+w/2, y+h/2-2)
+	}
+}
+
+// DrawSeat draws a side's man and king for the player panels.
+func (b *Board) DrawSeat(c *arcade.Canvas, seat, x, y, w, h int) {
+	s := pieces(b.seat.Equipped(kindPieces))
+	x += max(0, (w-11)/2)
+	for k, king := range []bool{false, true} {
+		rows, pal := s.sprite(seat, king, false)
+		c.Sprite(x+k*6, 2*y, rows, pal, 1)
+	}
+}
+
+// Status is a rejected move, for the status row (in red).
+func (b *Board) Status() string { return b.err }
+
+// Hint is what to do next, for the status row (table.Hinter).
+func (b *Board) Hint() string {
+	switch {
+	case len(b.path) > 1:
+		return "keep jumping: Enter on the next square"
+	case len(b.path) == 1:
+		return "Enter where it lands · Esc puts it down"
+	}
+	if b.seat.MyTurn() {
+		if ms := b.game().Board.Moves(); len(ms) > 0 && len(ms[0].Captured) > 0 {
+			return "you must jump"
+		}
+	}
+	return ""
+}
+
+// Animating is true while a combo or KING ME! shows after a move.
+func (b *Board) Animating() bool {
+	return b.callout != "" && b.seat.Effects() == "" && time.Since(b.calloutAt) < calloutLasts
 }

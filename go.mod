@@ -3,7 +3,7 @@ module github.com/JMThomas00/concord-checkers
 go 1.24.2
 
 require (
-	github.com/JMThomas00/Concord/sdk v0.9.0
+	github.com/JMThomas00/Concord/sdk v0.12.1-0.20261010204149-c2c49728fa3f
 	github.com/charmbracelet/bubbletea v1.3.4
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/google/uuid v1.6.0
