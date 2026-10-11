@@ -200,7 +200,9 @@ const calloutLasts = 1400 * time.Millisecond
 func drawCallout(c *arcade.Canvas, text string, cx, row int) {
 	w := arcade.LogoWidth(text, 1)
 	x := cx - w/2
-	c.Shade(x-1, row-1, w+3, arcade.LogoHeight(1)+2, "bg")
+	for j := row - 1; j < row+arcade.LogoHeight(1)+1; j++ { // clear what's under it, pixels too
+		c.Fill(x-1, j, w+3, " ", "fg", "bg")
+	}
 	c.Logo(text, x, 2*row, 1, []string{"yellow", "yellow", "yellow", "orange", "orange", "orange", "orange"})
 }
 
